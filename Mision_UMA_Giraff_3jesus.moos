@@ -1,0 +1,643 @@
+/////////////////////////////////////////////
+// Antler configuration  block
+/////////////////////////////////////////////
+
+ProcessConfig = ANTLER
+{
+	MSBetweenLaunches 	= 200
+	ExecutablePath		= 
+	
+	Run = MOOSDB        				@NewConsole = false
+
+//	Run = GenericSensor       			@NewConsole = true~ LASER_FRONT
+	Run = MobileRobot_Giraff 			@NewConsole = true
+//	Run = RGBDSensorToReactive			@NewConsole = true
+//Run = JoystickControl				@NewConsole = true
+
+	Run = RobotControlManager			@NewConsole = true
+	Run = MQTTMosquitto    				@NewConsole = true
+	Run = RobotGUI			     		@NewConsole = true
+//	Run = Localization2D_PF    			@NewConsole = true
+//	Run = Localization2D_Fusion 		@NewConsole = true
+//	Run = NavigatorReactivePTG3D		@NewConsole = true
+//	Run = RandomNavigator      			@NewConsole = true
+//	Run = WorldModel					@NewConsole = true
+	Run = Planner 						@NewConsole = true
+    Run = Executor 						@NewConsole = true
+	Run = StateCharts 					@NewConsole = true
+//	Run = AutoDocking_Laser				@NewConsole = true
+//	Run = SessionLogger 				@NewConsole = true
+//	Run = LaserOdometry2D				@NewConsole = true
+//	Run = SpeechSynth					@NewConsole = true
+	
+//	Run = ScopeLogger					@NewConsole = true
+	
+//	Run = GenericSensor       			@NewConsole = true~ MONO_CAMERA
+//	Run = AutoDocking_Camera			@NewConsole = true
+}
+
+
+ProcessConfig = CommonParams
+{
+	robotID = UMA_Giraff_7			// A unique identifier of the robot.	
+}
+
+
+ProcessConfig = LASER_FRONT
+{
+	CommsTick = 30
+	AppTick = 30
+
+	driver				= CHokuyoURG
+	process_rate		= 20 	//20		; Hz
+	grab_decimation		= 1 	//1
+
+	sensorLabel  	= LASER1
+	pose_x			= 0.22	; Laser range scaner 3D position in the robot (meters)
+	pose_y			= 0		//m
+	pose_z			= 0.28	//m
+
+	pose_pitch		= 0
+	pose_roll		= 0   
+    pose_yaw 		= 0 	//Degrees
+
+	COM_port_WIN	= COM8
+	COM_port_LIN	= ttyACM_FRONT
+
+	disable_firmware_timestamp = true		//(true) for Hokuyo URG-04LX-UG01
+	
+	// Optional: Exclusion zones to avoid the robot seeing itself:
+	//exclusionZone1_x = -0.20 -0.30 0.30 0.20
+	//exclusionZone1_y = 0.20 0.30 0.30 0.20
+
+	// Optional: Exclusion zones to avoid the robot seeing itself:
+	exclusionAngles1_ini = 120  // Deg
+	exclusionAngles1_end =-120  // Deg
+}
+
+
+ProcessConfig = MobileRobot_Giraff
+{
+	CommsTick = 30
+	AppTick = 30
+	Accel_limit = 2.0 //0.2
+	Save_logfile = false
+}
+
+
+ProcessConfig = RGBDSensorToReactive
+{
+	CommsTick = 15						//Maxima frecuencia - 30 Hz
+	AppTick = 15
+	
+	rangecam_ID = 1						//To be published in RANGECAM"rangecam_ID" variable (e.g. RANGECAM1)
+	Opengl_scene = false				// Whether or not to display an opengl scene with the detected obstacles (used for debug)
+	New_sensor = true					//Indicates the type of RGBD camera: TRUE=PrimeSens, FALSE=Kinect
+	Count_threshold = 5					// [if detect_close_obstacles_with_ir=true] Number of pixels with IR value > IR_threshold to send the Reactive Module a warning (something may be close)
+	IR_threshold = 750					// Infrared threshold to consider a point affected by a light source
+	Res_width = 320						// Camera resolution(px) - Shared for color, depth and infrared images (320 or 640)
+	Res_height = 240					// Camera resolution(px) - Shared for color, depth and infrared images (240 or 480)
+	downsample = 2
+	floor_limit = 0.06;					// Points detected with height < floor_limit will be considered as floor and discarded as obstacles
+	min_depth = 0.25					// The minimum depth (m) the camera is able to detect
+	max_depth = 4						// The max depth (m) the camera is able to detect
+	
+	// CAMERA POSE
+	//-------------
+	pose_x = -0.05	//m
+	pose_y = -0.05	//m
+	pose_z = 0.745  //m                                                                                                                                                 
+	pose_yaw = 0 	//Degrees
+	pose_pitch = 0  //Degrees
+	pose_roll = 90	//degrees
+}
+
+
+ProcessConfig = JoystickControl
+{
+	CommsTick = 10
+	AppTick = 10
+	max_v	= 0.6	// Maximum linear speed (m/s)
+	max_w	= 35	// Maximum angular speed (deg/s)
+}
+
+
+ProcessConfig = RobotControlManager
+{
+	CommsTick = 10
+	AppTick = 10
+	
+	working_mode = onlyOpenMORA					//auto or onlyOpenMORA
+	
+	use_client_alive_ack = false		//if enabled, Giraff will return to Docking when client disconnects or MQTT brocker down
+	max_client_ack_interval = 4			//Inteval in seconds after which if not ACK received from client, the Giraff will return to Docking
+	
+	check_battery_status = false		//if enabled, Giraff will return to docking when battery low (aprox 20%)
+	battery_base = true					//true=Monitor battery from the robot base, false=monitor external battery (see BatteryManager module)
+	battery_threshold_warning = 26		//Battery level (Volts) that once is reached will cause the robot to generate a Warning!
+	battery_threshold_recharge = 24.0	//Battery level (Volts) that once is reached will cause the robot to go Recharge
+	battery_threshold_charged = 29.5	//Battery level (Volts) that once is reached will cause the robot to go Recharge
+}
+
+
+ProcessConfig = MQTTMosquitto
+{
+	CommsTick = 30
+ 	AppTick = 30
+	
+	localizationRate = 7		//frec to send localization to client
+	sendLaserScans = true		//indicates (true/false) if laser scans are sent to Client
+	laserScanRate = 7 			//frec to send laserScans to client
+	laserScanResolution = 20	//% of samples
+		
+	password = MICONTRASEÑA
+	IP = 150.214.109.137		//giraffplus.xlab.si	//Set only to use local Broker
+	PORT = 8002 //22 					//8883					//Set only to use local Broker
+	
+	//Security Parameters
+	enable_TLS_security = false
+	TLS_path = C:\Users\Giraff\\Dropbox\Semiautonomy\Robot\Software\libs\mosquitto\certificates
+	TLS_CAfile_pem = C:\Users\Giraff\\Dropbox\Semiautonomy\Robot\Software\libs\mosquitto\certificates\cacert.pem
+	TLS_CERTfile_pem = C:\Users\Giraff\\Dropbox\Semiautonomy\Robot\Software\libs\mosquitto\certificates\clientcert.pem
+	TLS_KEYfile_pem = C:\Users\Giraff\\Dropbox\Semiautonomy\Robot\Software\libs\mosquitto\certificates\clientkey.pem
+}
+
+ProcessConfig = LaserOdometry2D
+{
+	CommsTick = 10
+	AppTick = 10
+	
+	LaserVarName = LASER1		//Name of the OpenMORA variable from which obtain the laser scans
+}
+
+ProcessConfig = RobotGUI
+{
+	CommsTick = 10
+	AppTick = 10
+
+    mission1 = objetivo.scxml
+	mission1_title = Paseo determ.
+	mission2 = objetivo_random.scxml
+	mission2_title = Paseo random
+	mission3 = objetivo_random_g.scxml
+	mission3_title = Random sin invasion
+	mission4 = objetivo_random_cinv.scxml
+	mission4_title = Random con invasion
+}
+
+
+ProcessConfig = Localization2D_PF
+{
+	CommsTick = 5
+	AppTick = 5
+
+	// The map used as a reference for localization
+	// ---------------------------------------------------------
+	// If "simplemap_file" is present, the other map entries are ignored.
+	//simplemap_file = Mapa_laboratorio_new.simplemap
+	//simplemap_file = mapaprueba.simplemap
+
+
+	gridmap_image_file	= C:\Users\Giraff_3\Dropbox\Semiautonomy\Robot\Software\missions\geometricMap_UMA.png
+	gridmap_image_res	= 0.03		// Resolution: Size of each pixel (meters)
+	//gridmap_image_cx	= 1250		// Pixel coordinates of the origin (0,0)
+	//gridmap_image_cy	= 200		//  If not present, use the image center.
+	
+	// Get Odometry from:
+	OdoVarName = ODOMETRY_OBS_LASER2D		//OpenMORA variable from which to read the Odometry
+	
+	// Initial uniform distribution:
+	X_MIN		= -0.5
+	X_MAX		= 0.5
+	Y_MIN		= -0.5
+	Y_MAX		= 0.5
+
+	
+	sampleSize = 3000		// Number of initial particles
+	min_sampleSize = 100		// Minimum number of particles
+
+	// The Particle Filter algorithm:
+	//	0: pfStandardProposal	  ***
+	//	1: pfAuxiliaryPFStandard
+	//	2: pfOptimalProposal    
+	//	3: pfAuxiliaryPFOptimal	  ***
+	//
+	PF_algorithm=0
+
+	// The Particle Filter Resampling method:
+	//	0: prMultinomial
+	//	1: prResidual
+	//	2: prStratified
+	//	3: prSystematic
+	resamplingMethod=0
+
+	// Set to 1 to enable KLD adaptive sample size:
+	adaptiveSampleSize=1
+
+	// Only for algorithm=3 (pfAuxiliaryPFOptimal)
+	pfAuxFilterOptimal_MaximumSearchSamples=250
+
+	// Resampling threshold
+	BETA = 0.001						//Threshold to relocalize the particles (Related to how scattered they are)
+	Likelihood_threshold = -14	 		//Threshold to relocalize the particles	(Related to the goodness os the pose estimation)
+
+	// KLD-sampling
+	KLD_binSize_PHI_deg=2.5
+	KLD_binSize_XY=0.07
+	KLD_delta=0.01
+	KLD_epsilon=0.01
+	KLD_maxSampleSize=10000
+	KLD_minSampleSize=2000
+
+	// ====================================================
+	//            MULTIMETRIC MAP CONFIGURATION
+	// ====================================================
+	//[MetricMap]
+	// Creation of maps:
+	occupancyGrid_count = 1 
+	gasGrid_count       = 0
+	landmarksMap_count  = 0
+	pointsMap_count     = 0
+	beaconMap_count     = 0
+
+	// Selection of map for likelihood: (fuseAll=-1,occGrid=0, points=1,landmarks=2,gasGrid=3)
+	likelihoodMapSelection=-1
+
+	// ====================================================
+	//   MULTIMETRIC MAP: OccGrid #00
+	// ====================================================
+	// Creation Options for OccupancyGridMap 00:
+	//	[MetricMap_occupancyGrid_00_creationOpts]
+	resolution=0.10
+
+	// Insertion Options for OccupancyGridMap 00:
+	//	[MetricMap_occupancyGrid_00_insertOpts]
+	mapAltitude=0
+	useMapAltitude=0
+	maxDistanceInsertion=15
+	maxOccupancyUpdateCertainty=0.55
+	considerInvalidRangesAsFreeSpace=0
+	minLaserScanNoiseStd=0.001
+
+	// Likelihood Options for OccupancyGridMap 00:
+	//	[MetricMap_occupancyGrid_00_likelihoodOpts]
+	likelihoodMethod=4		// 0=MI, 1=Beam Model, 2=RSLC, 3=Cells Difs, 4=LF_Trun, 5=LF_II
+
+	LF_decimation=20
+	LF_stdHit=0.20
+	LF_maxCorrsDistance=0.30
+	LF_zHit=0.95
+	LF_zRandom=0.05
+	LF_maxRange=80
+	LF_alternateAverageMethod=0
+}
+
+
+ProcessConfig = Localization2D_Fusion
+{
+	CommsTick = 15
+	AppTick = 15
+}
+
+
+ProcessConfig = NavigatorReactivePTG3D
+{
+	CommsTick = 30
+	AppTick = 30
+	
+	//[ROBOT_CONFIG]
+	//---------------
+	HEIGHT_LEVELS = 4
+	
+	//Indicate the geometry of each level
+	//Format:  LEVELX_HEIGHT, LEVELX_VECTORX, LEVELX_VECTORY
+
+	LEVEL1_HEIGHT = 0.33
+	LEVEL1_VECTORX =  0.15  0.3 0.3 0.15 -0.15 -0.3 -0.3 -0.15
+	LEVEL1_VECTORY = -0.275 -0.1 0.1 0.275  0.275  0.1 -0.1 -0.275
+	
+	LEVEL2_HEIGHT = 0.35
+	LEVEL2_VECTORX =  0.175 0.175 -0.175 -0.175
+	LEVEL2_VECTORY = -0.11   0.11   0.11  -0.11
+	
+	LEVEL3_HEIGHT = 0.35
+	LEVEL3_VECTORX =   0.03  0.03  0      0
+	LEVEL3_VECTORY = -0.065  0.015 0.015 -0.065
+	
+	LEVEL4_HEIGHT = 0.6
+	LEVEL4_VECTORX =  0.16  0.16  -0.1  -0.1
+	LEVEL4_VECTORY = -0.18  0.18   0.18 -0.18	
+
+
+	//[SENSORS_CONFIG]
+	//----------------	
+	//Indicate the number of lasers (variables LASER1, LASER2... LASER"N_LASERS" will be read)
+	N_LASERS = 1
+
+	//Indicate the height levels at which the lasers are placed (according to the 3D robot model)
+	LASER1_LEVEL = 1	
+	
+	//Indicate the number of kinects (variables RANGECAM1, RANGECAM2... RANGECAM"N_RANGECAMS" will be read)
+	N_RANGECAMS = 1
+
+	
+	//[NAVIGATION_CONFIG]
+	//--------------------
+	//Speed_multiply_factor = Speed_factor_obs*average_obs_distance + Speed_factor_cons 		Used to take into account the obstacles distribution (in the TP-Space)
+	Speed_factor_obs = 1.25	
+	Speed_factor_cons = -0.2	
+	
+	// Indicate whether you want to reload the gridcollision tables or not.
+	RELOAD_PTGFILES = 0		// 0 - Don't reload,   1 - Reload
+
+	// Indicate whether you want to save data into a Log file or not.
+	RECORD_LOGFILE = 0		// 0 - Don't record,   1 - Record
+	LOG_DECIMATION = 3		//Save results for only one every "LOG_DECIMATION" iterations
+
+	//	Parameters for the navigation
+	// ----------------------------------------------------
+	weights = 0.5 0.05 0.5 2.0 0.5 0.3
+
+	// 1: Free space
+	// 2: Dist. in sectors			
+	// 3: Heading toward target
+	// 4: Closer to target (euclidean)
+	// 5: Hysteresis
+	// 6: fast when free space
+
+	DIST_TO_TARGET_FOR_SENDING_EVENT = 1.25	// Minimum. distance to target for sending the end event. Set to 0 to send it just on navigation end
+
+	X0 = -1					// Initial location
+	Y0 = -4  
+	PHI0 = 0				// In degrees
+	X_TARGET = 17			// Target
+	Y_TARGET = 1    
+	VMAX_MPS = 0.4			// Speed limits
+	VMIN_MPS = 0.1
+	WMAX_DEGPS = 50
+	WMIN_DEGPS = 20
+	v_accel_lim = 0.4		// Accel limit in m/s2 (also used for deceleration)
+	w_accel_lim = 50		// Angular Accel limit in deg/s2
+	MAX_DISTANCE_PTG = 1.5	// Maximum range within which the obstacles are taken into account		
+	GRID_RESOLUTION = 0.02	
+	
+
+	//	PTGs	.All of them has the same characteristics, but they don't use all of these characteristics. 
+	//--------------------------------------------------------------------------------------------------------
+	//	Types:	1 - Circular
+	//		2 - a - A
+	//		3 - C|C,s, R = vmax/wmax
+	//		4 - C|C,s, like PTG 3, but if t>valor -> v = w = 0
+	//		5 - 
+	//		6 - 
+	//		7 - 
+	PTG_COUNT = 3			//Numero de PTGs a utilizar
+
+	PTG3_TYPE = 1
+	PTG3_NALFAS = 151
+	PTG3_VMAX = 0.35
+	PTG3_WMAX =20
+	PTG3_K = 1
+	PTG3_AV = 57.3
+	PTG3_AW = 57.3
+
+	PTG1_TYPE = 2
+	PTG1_NALFAS = 151
+	PTG1_VMAX = 0.35
+	PTG1_WMAX = 20
+	PTG1_K = 1.0
+	PTG1_AV = 57.3
+	PTG1_AW = 57.3
+
+	PTG2_TYPE = 5
+	PTG2_NALFAS = 151
+	PTG2_VMAX = 03.5
+	PTG2_WMAX = 20
+	PTG2_K = 1.0
+	PTG2_AV = 57.3
+	PTG2_AW = 57.3
+
+	// Choose the holonomic method to solve the reactive navigation in TP-Spaces
+	// 0: VFF,  1: ND
+	HOLONOMIC_METHOD = 1
+	
+	//	Parameters for the "Nearness diagram" Holonomic method
+	// ------------------------------------------------------------
+	//[ND_CONFIG]
+	factorWeights = 1.0 2.0 0.5 1.2
+	// 1: Free space
+	// 2: Dist. in sectors
+	// 3: Closer to target (euclidean)
+	// 4: Hysteresis
+
+	WIDE_GAP_SIZE_PERCENT = 0.25		// The robot travels nearer to obstacles if this parameter is small. 
+											// The smaller it is, the closer the selected direction is respect to
+											// the Target direction in TP-Space (under some conditions)
+	MAX_SECTOR_DIST_FOR_D2_PERCENT = 0.25	// 0.25 default
+	RISK_EVALUATION_SECTORS_PERCENT = 0.25	// 0.25 default
+	RISK_EVALUATION_DISTANCE = 0.15		// 0.15 default. In normalized ps-meters [0,1]
+	TARGET_SLOW_APPROACHING_DISTANCE = 1.00	// For stop gradually
+	TOO_CLOSE_OBSTACLE = 0.03		// In normalized ps-meters
+
+
+	//	Parameters for the VFF Holonomic method
+	// ------------------------------------------------------------
+	//[VFF_CONFIG]
+	TARGET_SLOW_APPROACHING_DISTANCE = 0.5
+	TARGET_ATTRACTIVE_FORCE = 7.5
+	
+	
+	//	Parameters for the Obstacles grid (local memory)
+	// ------------------------------------------------------------	
+	// Take into account that the local memory needs information from the localization module!
+	
+	Memory_on = false
+	Memory_visualization = false	//It only works if Memory_on == 1
+	Obs_grid_length = 1.5			//(lenght/resolution) has to be integer
+	Obs_grid_resolution = 0.03      //0.04
+	Vision_limit = 0.6
+	Pos_likelihood_incr = 0.6		// Range: 0.51 - 1
+	Neg_likelihood_incr = 0.4		// Range: 0 - 0.49
+	Occupancy_threshold = 0.9
+}
+
+
+ProcessConfig = RandomNavigator
+{
+	CommsTick = 5
+	AppTick = 5
+}
+
+
+ProcessConfig = AutoDocking_Laser
+{
+	CommsTick = 15
+	AppTick = 15
+	
+	debug = true
+	laserVar = LASER1				//OpenMORA variable from where to get the scans
+	
+	// Set dimenensions of the pattern
+	//---------------------------------
+	longitud_total_patron = 22.7	//cm from sub-pattern 1 to 3
+	distancia_corte = 2				//Max depth difference (cm) between points to consider them as part of the same line (subpattern)
+	distancia_comprobacion = 2		//max error (cm) to consider a point as part of the line containing the three sub-patterns
+	distancia_parada = 30			//Distance to the pattern (cm) to slow down the robot movement
+	
+	lon_sp1i = 3.3		//min width (cm) of first sub-patternt
+	lon_sp1s = 6		//max width (cm) of first sub-patternt
+	
+	lon_sp2i = 2.3		//min width (cm) of second sub-patternt
+	lon_sp2s = 5.8		//max width (cm) of second sub-patternt
+	
+	lon_sp3i = 1.4		//min width (cm) of third sub-patternt
+	lon_sp3s = 4.6		//max width (cm)of third sub-patternt
+	
+	lon_aux1i = 5		//min separation (cm) between sub-patterns 1 and 2
+	lon_aux1s = 6.5		//max separation (cm) between sub-patterns 1 and 2
+	
+	lon_aux2i = 3.5		//min separation (cm) between sub-patterns 2 and 3
+	lon_aux2s = 6		//max separation (cm) between sub-patterns 2 and 3
+		
+	// Robot speeds
+	//--------------
+	v_lineal_mover = 0.2		//linear speed (m/s)
+	agiro_mover = 20			//angular speed (deg/s)
+	
+	//Phase 2 (close to pattern)		
+		v_lineal_f2_rap = 0.15		//linear speed (m/s) in phase 2
+		agiro_f2_rap = 15 			//angular speed (deg/s) in phase 2
+	
+		v_lineal_f2_len = 0.15		//linear speed (m/s) in phase 2 when it's too close	 (<distancia_parada)		
+		agiro_f2_len = 15			//angular speed (deg/s) in phase 2 when it's too close (<distancia_parada)	
+}
+
+
+ProcessConfig = SpeechSynth
+{
+	CommsTick = 5
+	AppTick = 5
+}
+
+
+ProcessConfig = ScopeLogger
+{
+	CommsTick = 5
+	AppTick = 5
+}
+
+
+ProcessConfig = WorldModel
+{
+	CommsTick = 5
+	AppTick = 5	
+	world_model_file = C:\Users\Giraff_3\Dropbox\Semiautonomy\Robot\Software\missions\topology_UMA_Giraff_9.xml
+}
+
+
+ProcessConfig = Agenda
+{	
+	CommsTick = 2
+	AppTick = 2
+	Save_logfile = false
+}
+
+ProcessConfig = Planner
+{
+	CommsTick = 25
+	AppTick = 25
+
+	num_actions = 19
+	//Action Compatibility
+	actions_names = SAY@MOVE@SAY_TIME@PAUSE_MOVE@RESUME_MOVE@TRACK_OBJECT@STOP_TRACK_OBJECT@PLAY_ITEM@HELLO@START@FIN@WAIT_TO_START@WAIT_TO_PRESENT@PRESENT@SAY_JOKES@END_SAY_JOKES@WAIT_TO_GO@LOOK_AT@PUBLISH
+
+	action0 = MOVE PAUSE_MOVE WAIT_TO_START WAIT_TO_GO
+	action1 = SAY SAY_TIME PAUSE_MOVE RESUME_MOVE WAIT_TO_START WAIT_TO_GO WAIT_TO_PRESENT PLAY_ITEM
+	action2 = MOVE PAUSE_MOVE WAIT_TO_START
+	action3 = MOVE SAY SAY_TIME
+	action4 = SAY SAY_TIME PAUSE_MOVE
+	action5 = SAY SAY_TIME
+	action6 = TRACK_OBJECT SAY SAY_TIME
+	action7 = PAUSE_MOVE STOP_TRACK_OBJECT WAIT_TO_START END LOOK_AT MOVE
+	action8 = MOVE WAIT_TO_START
+	action9 = MOVE WAIT_TO_START
+	action10 = MOVE PLAY_ITEM WAIT_TO_GO
+	action11 = SAY SAY_TIME PLAY_ITEM START MOVE PRESENT
+	action12 = SAY SAY_TIME PLAY_ITEM PRESENT MOVE WAIT_TO_PRESENT WAIT_TO_START LOOK_AT
+	action13 = WAIT_TO_PRESENT
+	action14 = MOVE PAUSE_MOVE SAY SAY_TIME RESUME_MOVE
+	action15 = SAY_JOKES
+	action16 = MOVE
+	action17 = PLAY_ITEM WAIT_TO_PRESENT 
+	action18 = PLAY_ITEM WAIT_TO_PRESENT 
+	
+	//This means that the action 0 (SAY) is compatible with action 1 (MOVE) and vice versa
+}
+
+ProcessConfig = Executor
+{
+	CommsTick = 25
+	AppTick = 25
+
+	num_jokes = 11
+	joke1=Soy como robocop. Tengo los nervios de acero.
+	joke2=De mi cerebro cibernético salen pepitas de oro.
+	joke3=Este es mi lugar de trabajo. Aquí paseo sin parar hasta que me quedo sin baterías.
+	joke4=Ya va haciendo calorcito no? O es que se me empiezan a chamuscar mis circuitos?
+	joke5=Creo que me a mi también me está afectando la nube del volcán.
+	joke6=Hola soy Sancho el guardian del laboratorio
+	joke7=Mira que insisto pero, no me quieren construir una compañera robótica.
+	joke8=Para empezar bien el día no hay nada mejor que un buen chupito de aceite.
+	joke9=Queréis que os cuente un chiste?. Mejor no, seguro que no lo íbais a pillar
+	joke10=Tengo muy mala memoria. Igual me estoy repitiendo. O no, no me acuerdo.
+	joke11=Juas Juas
+	
+	//MORA variables that this module should be subscribed
+	num_vbles = 1
+	vble1 = RECHARGE_COMPLETED
+	
+}
+
+ProcessConfig = StateCharts
+{
+	CommsTick = 15
+	AppTick = 15
+	objective_file = C:\Users\Giraff\\Dropbox\Semiautonomy\Robot\Software\missions\StateCharts_RandomNavigation_Room1_2.scxml
+}
+
+
+ProcessConfig = SessionLogger
+{
+	//overloading basic params..lets be feisty
+	AppTick = 20.0
+	CommsTick = 20.0
+
+	// all file names begin with this stem
+	File = MORALOG
+
+	// where is the root log directory
+	PATH = C:\Users\Giraff\Desktop\experiments
+	
+	//Save logfile from start or wait till a new client (user) connects
+	WaitForUser = false;
+
+	// yes we want some sync logging for crude
+	// performance checkin g
+	SyncLog = true @ 0.2
+
+	// yes we want async logging so we can replay
+	// exactly what happened and record strings
+	AsyncLog = true
+	WildCardLogging = true
+	WildCardPattern =
+	WildCardOmitPattern = *RANGECAM*,LASER*,*_STATUS,*OBS*
+	// yes append each created directory logfile
+	// with a time stamp DAY MONTH YEAR TIME
+	FileTimeStamp = true
+
+	//what do we want to log
+	/ / ( zero means capture everything )
+	//Log = LMSLASER2D @ 0 MONITOR
+	//Log = MARGEODOMETRY @ 0
+	//Log = GPSData @ 0 . 4
+}

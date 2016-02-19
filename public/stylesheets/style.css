@@ -1,0 +1,39 @@
+body {
+  padding: 30px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #2E8B57;
+  text-decoration: none;
+}
+
+table, tr, td, th {margin: 0;border: 0;padding: 5px;border-collapse: collapse;}
+
+li {
+    list-style-type: none;
+    border: 2px solid black;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 3px 3px 3px #888;
+    padding: 5px 5px 5px 5px;
+}
+
+li:hover {
+  cursor: pointer;
+  background-color: #696969;
+}
+
+.localCam2 {
+  display: inline-block;
+  top: 15px;
+  right: 15px;
+  float: right;
+}
+
+.localCam video {
+    border: 5px solid rgb(119, 119, 119);
+    outline: 0px none;
+    height: 240px;
+    width: 320px;
+}

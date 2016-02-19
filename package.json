@@ -1,0 +1,19 @@
+{
+  "name": "ProjectRTC",
+  "version": "0.3.2",
+  "author": "Jesus Ramirez Ramos",
+  "description": "Proyecto TFG UMA",
+  "scripts": {
+    "start": "forever start app.js",
+    "stop": "forever stopall"
+  },
+  "dependencies": {
+     "express": "4.13.3",
+    "ejs": "2.3.4",
+	"ftp": "0.3.10",
+	"open": "*",
+   "socket.io": "~0.9",
+    "forever": "0.15.1",
+	"mqtt":"1.5.0"
+  }
+}
